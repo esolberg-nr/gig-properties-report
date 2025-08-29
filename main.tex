@@ -70,12 +70,13 @@ functionality of the work package.
 
 In this section we will describe the added functionality to the PCube standalone GUI.
 The PCube tab MAP QC tab previously had support for inverting for elastic and reservoir
-properties conditioned on te MAP QC tab. The tab now allows for a inverting for elastic
+properties conditioned on the MAP QC tab. The tab now allows for a inverting for elastic
 and reservoir properties conditioned on a custom user-specified LFC trace as well.
 This allows for exploring different hypothesis and e.g. get at better understanding of the influence of the
 LFC trace on the inverted properties. The custom LFC trace(s) may be imported from file,
 either as a segy cube, or in text format. Please consult the User Manual for up to date
-information.
+information. To reflect that we not only invert using the MAP trace, the tab has been renamed
+\emph{Rock property inv. QC}.
 
 \begin{figure}[h]
     \centering
@@ -248,7 +249,7 @@ Let us go through the configuration in detail.
 \end{itemize}
 
 If we try to connect the configuration to the original HCPV definition, we
-have that LFCs and property criteria determines $h$ (and the \empt{thickness\_in\_meters}
+have that LFCs and property criteria determines $h$ (and the \emph{thickness\_in\_meters}
 parameter determine if this is in meters or milliseconds), while
 the volume factors specify the $\phi$ and $(1 - S_w)$ terms.
 
@@ -349,7 +350,7 @@ For each LFC trace we then sample elastic and reservoir properties
 from the posterior distribution, given the data and LFC trace.
 The number of samples here is also configurable. In Figure \ref{fig:sampled_properties}
 we show three samples of elastic and reservoir properties for a given LFC trace. Note that
-for a given sample, we use the joint posterior distribution of alle elastics
+for a given sample, we use the joint posterior distribution of all elastics
 and reservoir properties.
 \begin{figure}[h]
     \centering
@@ -417,7 +418,7 @@ We support two types of visualizations out of the box.
     \item Maps, mean map or e.g. P10, P50, P90 maps of the property of interest.
 \end{itemize}
 
-Note that the sampled custom properties may be written to a \empth{csv}
+Note that the sampled custom properties may be written to a \emph{csv}
 or \emph{parquet} file as well. This has the advantage of both access to the
 data used in generating the plots, as well as the ability to
 fine tune plots or create completely new visualizations.
