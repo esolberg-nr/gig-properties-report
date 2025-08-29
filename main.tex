@@ -27,7 +27,7 @@ This note summarizes the work done in the 2025 work package
 ``Prediction of elastic and reservoir properties''. The goal of the work package
 was to improve QC tools for inverted elastic and reservoir properties, as well as aiding
 the user in creating summaries and visualization of elastic and reservoir properties.
-The work has involved development of PCube standalone graphical user interface (GUI),
+The work has involved development of the PCube standalone graphical user interface (GUI),
 as well as a new pycube module.
 \end{abstract}
 
@@ -35,27 +35,27 @@ as well as a new pycube module.
 
 \section{Introduction}
 
-% TODO: Reference other articles
-% TODO: Explain MAP trace?
-
 Determining elastic properties as well as properties such as
 porosity and water saturation is important for characterizing
 the reservoir, both in exploration and field development.
-PCube already has out of the box support for inverting for
-elastic and reservoir properties. This work may be seen
-as a continuation of the work described in (TODO: Reference
-    Improved reservoir property inversion and QC).
+Inverting for elastic and reservoir is not a new topic in PCube,
+and this work may be seen as an extension of the work described
+in \cite{Aker2023}.
 
 Before we continue, we should briefly explain the data and
-project used to generate examples and illustrations for the report.
+project used to generate examples and illustrations in this report.
 We have used a revised version of the PCube paper
 example. We have an anticline model, with brine or oil-saturated
 sandstone. Parameters are computed by fluid substitution, with
 added noise. We have modeled three reservoir properties:
 porosity (por), clay content (clay) and water saturation (sw). In Figure
-\ref{fig:map_traces} we have plotted a section with MAP traces.
-The purpose of the project is only to illustrate functionality, and
-the examples are not necessarily very realistic.
+\ref{fig:map_traces} we have plotted a section with MAP\footnote{
+    Without going into details, the maximum a posteriori (MAP) trace may
+    be viewed as an attempt of finding the trace that we believe to be
+    the most likely.
+}
+The purpose of the PCube project is only to illustrate the added
+functionality of the work package.
 
 
 \begin{figure}[h]
@@ -68,23 +68,29 @@ the examples are not necessarily very realistic.
 
 \section{PCube GUI}
 
-The PCube tab MAP QC tab now allows for a inverting for elastic and reservoir properties
-conditioned on a custom LFC trace, rather than the MAP LFC trace. This allows for exploring
-different hypothesis, and one may see the influence of the LFC trace on the inverted properties.
+In this section we will describe the added functionality to the PCube standalone GUI.
+The PCube tab MAP QC tab previously had support for inverting for elastic and reservoir
+properties conditioned on te MAP QC tab. The tab now allows for a inverting for elastic
+and reservoir properties conditioned on a custom user-specified LFC trace as well.
+This allows for exploring different hypothesis and e.g. get at better understanding of the influence of the
+LFC trace on the inverted properties. The custom LFC trace(s) may be imported from file,
+either as a segy cube, or in text format. Please consult the User Manual for up to date
+information.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{figures/gui_property_inversion_tab_il57_xl62_file.png}
-    \caption{Custom LFC from file with inverted elastic and reservoir properties, shown as dotted lines.
-        The inverted properties for the MAP LFC are shown as solid lines.
+    \caption{MAP LFC and custom LFC (from file) with inverted elastic and reservoir properties.
+    The inverted properties for the MAP LFC are shown as solid lines, and
+    the inverted properties for the custom LFC are shown as dotted lines.
     }
     \label{fig:custom_lfc_property_inversion_tab}
 \end{figure}
 
 In Figure \ref{fig:custom_lfc_property_inversion_tab} we show inverted properties
-for a trace. Note that what is shown here is the posterior \textit{mean} of the
-properties. One might be interested in more than the just the mean however, and
-in the pycube module we shall se how we can both sample posterior properties,
+for a trace. Note that what is shown here is the posterior \textit{median} of the
+properties. One might be interested in more than the just the median however, and
+in the next section we shall see how we can both sample posterior properties,
 as well as sampling LFC traces from the posterior Markov Chain for even more insight.
 
 \section{Pycube module}
@@ -92,9 +98,10 @@ as well as sampling LFC traces from the posterior Markov Chain for even more ins
 The goal of the new pycube module is twofold:
 \begin{itemize}
     \item {
-        Add more plots that can be easily generated from pycube.
+        Add more summaries and visualizations of inverted elastic and
+        reservoir properties that can be easily generated from pycube.
         The added plots comes in the form of histograms, to view the
-        full distribution of the data, and in form of maps, to visualize
+        full distribution of the data, or in form of maps, to visualize
         how the properties vary spatially.
     }
     \item{
@@ -108,19 +115,30 @@ The goal of the new pycube module is twofold:
 
 
 It should be noted that the in PCube standalone we already have
-the following outputs available to file:
+the following outputs available in segy files:
 
 \begin{itemize}
-    \item Inverted mean elastic and reservoir property cubes, as well as standard deviation.
+    \item Inverted median elastic and reservoir property cubes, as well as standard deviation.
     \item Histograms for individual elastic properties.
 \end{itemize}
 
+This information can also be generated from pycube when inverting a trace.
+This module is a supplement to this functionality, and not a replacement.
+
+
 \subsection{Example properties}
+\label{sec:examples}
+
+In Section \ref{sec:explanation} we will explain how the module works.
+Before that we would like to show some examples of what you can
+get out of the module, by showing a couple of reservoir
+properties that could not previously be sampled, and how one
+may configure the property inversion pycube module to achieve this.
 
 
 \subsubsection{Hydrocarbon Pore Volume (HCPV)}
 
-Calculating the amount of oil or gas in a reservoir is of course of great interest.
+Estimating the amount of oil or gas in a reservoir is of course of great interest.
 The Hydrocarbon Pore Volume (HCPV) is a common term used for the volume of the
 hydrocarbons at reservoir conditions. Given the expansion factor of the hydrocarbons from the
 reservoir to the surface, the HCPV can be converted to volume at surface
@@ -148,27 +166,27 @@ the thickness, thus ignoring the area factor $A$. However, this should be easy t
 multiply in as a postprocessing step.
 Secondly, we don't necessarily try to calculate the total hydrocarbon
 pore volume, but only the part that is economically recoverable. For example in areas
-with high clay content or low porosity, we may choose to try to only include the net pay
-in our calculations. It should be noted that this is configurable by the user however.
-Finally, we have the option to choose between calculating the thickness in meters or in milliseconds.
+with high clay content or low porosity, we may choose to only include the net pay
+in our calculations. This is configurable by the user.
+Finally, we have the option to calculate the thickness in milliseconds as
+well as in meters.
 
-If Figure \ref{fig:hydrocarbon_pore_volume} we show an example of a histogram of sampled values of
-HCPV for a single trace. Note that for cases with low variation in the reservoir properties,
-most of the variation may be attributed to lfc thickness only. In these cases one may get
-a much faster estimate of HPCV by only sampling LFC traces from the posterior Markov Chain,
-and not inverting for elastics and reservoir properties, and just use constant values for these.
-In this case one may generate this data when running PCube inversion by specifying this
-in the PCube output configuration.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.8\textwidth]{figures/hydrocarbon_pore_volume_meters_il57_xl62.png}
-    \caption{Histogram of sampled values of Hydrocarbon Pore Volume (HCPV) for inline $57$ and crossline $62$.}
+    \caption{
+        Histogram of sampled values of Hydrocarbon Pore Volume (HCPV) for inline $57$ and crossline $62$.
+        We have also marked the P90, P50 and P10 values.
+    }
     \label{fig:hydrocarbon_pore_volume}
 \end{figure}
 
 
-In Figure \ref{fig:hydrocarbon_pore_volume_maps} we show P10, P50 and P90 maps for
+If Figure \ref{fig:hydrocarbon_pore_volume} we show a a histogram of sampled values of
+HCPV for a single trace, and in Figure \ref{fig:hydrocarbon_pore_volume_maps} we show
+P90, P50 and P10\footnote{The P90 value is the value for which 90 per cent of the
+sampled value is at least as large as this value. P50 is the median, and only 10 per cent of the sampled values P10 or higher.} maps for
 Hydrocarbon Pore Volume. We sampled $100$ LFC traces and $100$ properties for each
 LFC trace, a total of $10000$ values for each inline and crossline location.
 These are not $10000$ \textit{independent} samples however, see Section \ref{sec:sampling}.
@@ -185,9 +203,9 @@ crossline to reduce compute time when generating the plots.
 
 \paragraph{Configuring HCPV}
 
-Below we show how one may configure a property to calculate HCPV. Note that
-this shows the state at time of writing see the module documentation for
-updated information.
+Below we show how one may configure a property to calculate HCPV\footnote{
+    All configurations are subject to change, refer to the latest PCube documentation.
+}
 \begin{minted}{yaml}
 name: hydrocarbon_pore_volume
 type: Thickness
@@ -208,29 +226,30 @@ config:
 Let us go through the configuration in detail.
 \begin{itemize}
     \item \emph{name}: Name of the property, can be chosen by the user.
-    \item{\emph{type}: Type of property class to use. \emph{Thickness} is as we shall see a very flexible type.}
+    \item{\emph{type}: Type of property class to use, \emph{Thickness} in this case.}
     \item \emph{config}: Configuration parameters, for the Thickness property.
-    \item \emph{lfcs}: List of lfc names which may contain the hydrocarbon of interest.
+    \item \emph{lfcs}: List of LFCs which contain the hydrocarbon of interest.
     \item {
-        \emph{property\_criteria}: This is optional, but here additional Net Pay criteria may be
+        \emph{property\_criteria}: This is optional, but here additional net pay criteria may be
         specified. Here we have specified two criteria. Having a minimum porosity of $0.2$
         and maximum clay content of $0.1$. Note that \textbf{por} and \textbf{clay} are the names
         of the porosity and clay reservoir properties respectively, and these must
         match the names given in the PCube project. If a sampled trace do not satisfy
-        all of the criteria for parts of the trace, that parts that do not satisfy the
+        all of the criteria for parts of the trace, the parts that do not satisfy the
         criteria will not contribute to the hydrocarbon pore volume calculation.
     }
     \item {
         \emph{volume\_factors}: List of properties that we will multiply the
-        net pay with in order to calculate the HCPV. Here we specify that
-        we should multiply with porosity, and the one minus the water saturation,
+        net pay with in order to calculate HCPV. Here we specify that
+        we should multiply with porosity, and one minus the water saturation,
         as the use complement flag is specified here.
     }
     \item \emph{thickness\_in\_meters}: If true we calculate the thickness in meters, otherwise in milliseconds.
 \end{itemize}
 
 If we try to connect the configuration to the original HCPV definition, we
-have that lfcs and property criteria all relate to calculating $h$, while
+have that LFCs and property criteria determines $h$ (and the \empt{thickness\_in\_meters}
+parameter determine if this is in meters or milliseconds), while
 the volume factors specify the $\phi$ and $(1 - S_w)$ terms.
 
 \subsubsection{Net-to-Gross (NTG)}
@@ -241,7 +260,7 @@ We try to be as flexible as possible to allow for different ways of
 defining how it should be calculated.
 
 If Figure \ref{fig:net_to_gross_histogram} we show an example of a histogram
-of sampled values for a single trace.
+of sampled net-to-gross values for a single trace.
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.8\textwidth]{figures/net_to_gross_il57_xl62.png}
@@ -299,16 +318,12 @@ Let us go through the configuration.
 
 
 \subsection{Explanation of process}
+\label{sec:explanation}
 
 In this section we will explain the steps in how we sample from the
 posterior distribution for elastic and reservoir properties.
 
 \subsubsection{Sample LFC traces}
-
-The first step is to sample LFC traces from the posterior Markov Chain, the
-number of samples is configurable.In Figure \ref{fig:lfc_traces} we show
-sampled LFC traces for a given trace location. In the figured we have shown
-an example for a 3D project, but 4D projects are also supported.
 
 \begin{figure}[htbp]
     \begin{minipage}[valign=t]{0.9\textwidth}
@@ -317,30 +332,33 @@ an example for a 3D project, but 4D projects are also supported.
     \begin{minipage}[valign=t]{0.1\textwidth}
         \includegraphics[width=\textwidth]{figures/lfc_legend.png}
     \end{minipage}
-    \label{fig:lfc_traces}
     \caption{$100$ LFC traces samples from posterior Markov Chain.
              Each vertical slice is an independently sampled LFC trace.
     }
+    \label{fig:lfc_traces}
 \end{figure}
+
+The first step is to sample LFC traces from the posterior Markov Chain.
+In Figure \ref{fig:lfc_traces} we show
+sampled LFC traces for a given trace location.
 
 The number of LFC samples per trace is configurable.
 
 \subsubsection{Sample elastic and reservoir properties}
 For each LFC trace we then sample elastic and reservoir properties
-from the posterior distribution given the data and LFC trace.
+from the posterior distribution, given the data and LFC trace.
 The number of samples here is also configurable. In Figure \ref{fig:sampled_properties}
-we show three samples of reservoir properties for a given LFC trace. Note that
+we show three samples of elastic and reservoir properties for a given LFC trace. Note that
 for a given sample, we use the joint posterior distribution of alle elastics
-and reservoir properties. Thus for a given color the samples of porosity
-and clay are not independent of each other.
+and reservoir properties.
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{figures/sampled_properties_with_mean_il57_xl62.png}
-    \caption{Three samples of reservoir properties for a given LFC trace. The posterior mean is shown as a dotted line.}
+    \caption{Three samples of reservoir properties for a given LFC trace. The posterior median is shown as a dotted line.}
     \label{fig:sampled_properties}
 \end{figure}
 
-The number of elastic samples per LFC trace is configurable.
+The number of elastic and reservoir property samples per LFC trace is configurable.
 
 \subsubsection{Calculate properties of interest}
 
@@ -353,62 +371,60 @@ The number of elastic samples per LFC trace is configurable.
 
 Until now we have described the sampling machinery, now we come to the arguably
 more interesting part. In Figure \ref{fig:lfc_trace_and_properties} we show an
-example of a LFC trace with sampled properties. Together this is considered
+example of a LFC trace together with sampled properties. Together this is considered
 a single sample from our posterior distribution. Based on this sample we may
 now calculate a property of interest. This may be HCPV, Net-to-Gross or any
-other property of desire.
+other property of desire. We have shown examples of this in Section \ref{sec:examples}.
 
 The only restriction of a property is that given an LFC-trace and a set of
-properties, it should produce a single number or boolean value. I.e. we
-should not produce one value for each depth level, but the value should
-be aggregated across depth. This fits very well with our example properties,
+properties, it should produce a \textit{single} number or boolean value.
+In other words, we should not produce one value for each depth level,
+but one value for the entire trace. This fits very well with our example properties,
 which are based on based on thickness in the case of HCPV or comparisons of
 thicknesses in the case of Net-To-Gross. An example of a boolean property
 could be e.g. a property that returned true if the sampled trace contained
 net pay, otherwise false.
 
-Notice the similarities of the Figures \ref{fig:lfc_trace_and_properties} and
+Notice the similarities of Figure \ref{fig:lfc_trace_and_properties} and
 Figure \ref{fig:custom_lfc_property_inversion_tab}. There are however two
 crucial differences:
 \begin{itemize}
-    \item In the GUI tab the LFC trace is either the MAP LFC or custom LFC trace
+    \item In the GUI tab the LFC trace is either the MAP LFC or a custom LFC trace
           from the user, while in the pycube module we sample LFC traces
           from the posterior Markov Chain.
-    \item In the GUI tab we show the posterior mean of the properties,
-          while in the pycube module we sample properties from the posterior
+    \item In the GUI tab we show the posterior \textit{median} of the properties,
+          while in the pycube module we \textit{sample} properties from the posterior
           distribution given the LFC trace.
 \end{itemize}
 
 The module establishes a common framework for estimating any property that
 is based on the elastic and reservoir properties. The module handles all the
 sampling and book keeping. In the case of a 4D project the properties will
-be split into base and monitor, and the property will be evaluated separately
-for each vintage.
+be split into base and monitor after sampling, and the property will be
+evaluated separately for each vintage.
 
-We have covered the configuration of the Hydrocarbon Pore Volume and
-Net-to-Gross properties before. In general each property type will
+In section \ref{sec:examples} we covered configuration of Hydrocarbon Pore
+Volume and Net-to-Gross properties. In general each property type will
 have their own configuration options, so consult the module documentation
 for up-to-date information.
 
 \subsubsection{Visualize}
 
-We have two types of visualizations out of the box.
+We support two types of visualizations out of the box.
 
 \begin{itemize}
     \item Histogram of the full distribution of a property.
-    \item Maps, e.g. P10, P50, P90 maps of the property of interest.
+    \item Maps, mean map or e.g. P10, P50, P90 maps of the property of interest.
 \end{itemize}
 
-Note that a \emph{parquet} file may also be specified as output for
-custom properties. This has the advantage of both access to the
+Note that the sampled custom properties may be written to a \empth{csv}
+or \emph{parquet} file as well. This has the advantage of both access to the
 data used in generating the plots, as well as the ability to
 fine tune plots or create completely new visualizations.
 
 \paragraph{Configuring Visualization}
 
-As was true for the properties configuration, the visualization configuration may
-change in the future, so consult the module documentation for up-to-date
-information.  Here is an example configuration for the visualizations:
+Here is an example configuration for the visualizations:
 \begin{minted}{yaml}
 summaries_config:
   - type: MeanMap
@@ -454,6 +470,8 @@ Let us go through the configuration:
 \end{itemize}
 
 Note that each property type may be specified several times with different configurations.
+One may e.g. use the Thickness property to estimate both gross and net pay,
+or have two versions of the same property, one in meters and one in milliseconds.
 
 \subsubsection{Note on sampling}
 \label{sec:sampling}
@@ -461,13 +479,13 @@ Note that each property type may be specified several times with different confi
 If we sample $100$ LFC traces and sample $100$ sets of properties for each
 LFC sample we have $10000$ realizations of property values from the posterior distribution.
 Note however that we don't have $10000$
-\textit{independent} samples, as samples that uses that condition on the same LFC
-trace will not be independent. By only drawing $1$ property sample per LFC trace
+\textit{independent} samples, as samples that condition on the same LFC
+trace will not be independent. If we instead only drew $1$ property sample per LFC trace
 all samples would be independent. This would however come at the cost of either fewer
 samples or increased compute time, as the most time consuming part of the inversion
-is to find posterior mean and covariance given an LFC trace. Sampling many properties
-given that posterior mean and covariance is comparably cheap. One way to think about
-it is that we get $100$ independent samples, one for each LFC trace, and then we
+is to find posterior mean and covariance (in transformed domain) given an LFC trace.
+Sampling many properties given that posterior mean and covariance is comparably cheap.
+One way to think about it is that we get $100$ independent samples, one for each LFC trace, and then we
 get some additional dependent samples. Though these do not give the same benefit
 as fully independent samples, it can be justified by their cheap calculation.
 As an analogy, assume you want to find the expectation of a random variable by taking
@@ -478,6 +496,13 @@ more is the variance of the estimator is reduced.
 Note that we may split the variance that is explained by the variation in LFC traces,
 and the variation that is due to property sampling. By the law of total variance
 the variance of a random variable $Y$ we have
+
+It should be noted that for cases with low variation in the reservoir properties,
+most of the variation may be attributed to LFC thickness only. In these cases one may get
+a much faster estimate of HPCV by only sampling LFC traces from the posterior Markov Chain,
+and not inverting for elastics and reservoir properties, and just use constant values for these.
+In this case one may generate this data when running PCube inversion by specifying this
+in the PCube output configuration.
 
 \begin{align*}
 \text{Var}(Y) &= \text{Var}(\mathbb{E}[Y | X]) + \mathbb{E}[\text{Var}(Y | X)]
@@ -498,8 +523,9 @@ but we need to increase the number of LFC samples to reduce the first term.
 
 \subsection{Python implementation}
 
-Here we show an outline of the \emph{CustomProperty} class with two methods
-that needs to be implemented by all custom properties.
+Here we show an outline of the abstract \emph{CustomProperty} class with
+two methods that needs to be implemented by all custom properties (which
+should extend this class).
 
 \begin{minted}{python}
 
@@ -512,12 +538,12 @@ class CustomProperty(abc.ABC):
         )
 
     def evaluate_property(properties: dict[str, np.ndarray]) -> float | int | bool:
-        """Evaluate the custom property based on the provided properties.
+        """Evaluate the custom property based on the provided elastic and reservoir properties.
 
         Args:
             properties (dict[str, np.ndarray]): Dictionary of properties where
-              keys are property names and values are numpy arrays of property
-              values. The properties provided are the ones specified in
+              keys are property names (elastic or reservoir) and values are numpy arrays
+              of property values. The properties provided are the ones specified in
               `input_properties`.
         Returns:
             Evaluated custom property value, should be a scalar.
@@ -542,9 +568,11 @@ As part of this work package we have implemented three custom properties:
 
 
 \section{Summary}
-In this note we have described the new property inversion module in pycube.
+In this note we have described a new property inversion module in pycube.
 The module is flexible and can be configured from yaml files. The property
-inversion is quite computationally demanding, so it it is recommended to
-first narrow down the area of interest to keep computation time reasonable.
+inversion can be quite computationally demanding, however, so it is
+recommended to first narrow down the area of interest to keep computation
+time reasonable.
 
+\bibliography{references.bib}
 \end{document}
